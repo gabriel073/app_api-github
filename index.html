@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./assets/github_favi.ico">
+
+    <title>Api GitHub</title>
+</head>
+<!-- Stilos en Linea *excepcion -->
+<style>
+    .container {
+        display: flex;
+        /*  esto centro los elementos */
+        justify-content: center;
+        width: 13rem;
+        /* border: 2px solid black; */
+        flex-wrap: wrap;
+        /*  esto centro los el container */
+        margin: auto;
+    }
+    
+    .backgroundTheme {
+        background-color: black;
+        color: white;
+    }
+    
+    .text {
+        color: white;
+    }
+    
+    #cambiaTema {
+        display: none;
+    }
+    
+    .avatar {
+        width: 15rem;
+        border: 2px solid red;
+    }
+    
+    .square-avatar {
+        border-radius: 14px;
+        transition: border-radius 1s linear;
+    }
+    
+    .circle-avatar {
+        border-radius: 50%;
+        transition: border-radius 1s linear;
+    }
+    
+    .descripcion {
+        margin: auto;
+    }
+    
+    .listRepos {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #shuffle {
+        background-color: black;
+        color: white;
+        width: 80px;
+        height: 50px;
+        border-radius: 14px;
+    }
+</style>
+
+<body>
+    <div class="container">
+        <h1 class="username">Prueba</h1>
+        <img src="" alt="img" class=" circle-avatar avatar">
+        <h2>Repos</h2>
+        <ul class="listRepos"></ul>
+        <button id="shuffle">Shuffle</button>
+        <!-- <button id="cambiaTema">cambiar tema</button> -->
+    </div>
+
+    <script>
+        // LLamando a la api de github todos los repositorios
+
+        const baseUrl = "https://api.github.com";
+
+        const getRandomProfile = (profileList) => {
+            const ramdonIndex = Math.ceil(Math.random() * profileList.length - 1);
+            const randomProfile = profileList[ramdonIndex];
+            return randomProfile;
+        }
+        const getPublicRepositories = async() => {
+            const response = await fetch(`${baseUrl}/repositories`);
+            const jsonResponse = await response.json();
+            getRandomProfile(jsonResponse);
+
+            const randomProfile = getRandomProfile(jsonResponse);
+
+            console.log(getRandomProfile(jsonResponse));
+            return randomProfile;
+        };
+
+        const getRepositoriosDeOwner = async(reposEndpoint) => {
+            const reposResponse = await fetch(reposEndpoint);
+            const jsonReposResponse = await reposResponse.json(); // -----> aca trae los 30 repos
+            const responseRepos = jsonReposResponse.slice(0, 5); // -----> aca recorta  a 5  repos
+
+            return responseRepos;
+        }
+
+        // LLamando al primer repo de  la api de github
+
+        const editProfile = async() => {
+            const profileData = await getPublicRepositories();
+            const avatarUrl = profileData.owner.avatar_url;
+            const name = profileData.owner.login;
+
+            const userRepos = await getRepositoriosDeOwner(profileData.owner.repos_url);
+
+            const userAvatar = document.querySelector(".avatar");
+            const nameNode = document.querySelector("h1");
+            const listNode = document.querySelector(".listRepos");
+            listNode.innerHTML = "";
+
+            nameNode.textContent = name;
+            userAvatar.src = avatarUrl;
+
+            userRepos.forEach((repo) => {
+                const repoNode = document.createElement("a");
+                repoNode.textContent = repo.html_url;
+                repoNode.href = repo.html_url;
+
+                listNode.appendChild(repoNode);
+
+            });
+        }
+        editProfile();
+
+
+        // este es el CallBack que se utiliza cuando dispare el evento del efecto en hover avatar
+
+        const userAvatars = document.querySelector(".avatar");
+
+        const changeImageRadius = () => {
+
+            const isCircle = userAvatars.classList.contains("circle-avatar");
+
+            // forma resumida
+            userAvatars.classList.toggle("circle-avatar");
+            userAvatars.classList.toggle("square-avatar");
+
+        };
+        userAvatars.addEventListener("mouseenter", changeImageRadius);
+        userAvatars.addEventListener("mouseleave", changeImageRadius);
+
+        const shuffleBtn = document.querySelector("#shuffle");
+        shuffleBtn.addEventListener('click', editProfile);
+    </script>
+</body>
+
+</html>
